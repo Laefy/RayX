@@ -1,6 +1,7 @@
 #ifndef RAYX_STATUS_H
 #define RAYX_STATUS_H
 
+	#include <assert.h>
 	#define RAYX_STATUS_SIZE_STRING
 
 typedef enum {

@@ -18,8 +18,8 @@ void RayX_Interpolation(RayX_Point *interpolation, RayX_Point const *pt1, RayX_P
 	int dy = pt2->y - pt1->y;
 	double dz = pt2->z - pt1->z;
 	int dr = pt2->c.r - pt1->c.r;			
-	int db = pt2->c.g - pt1->c.g;	
-	int dg = pt2->c.b - pt1->c.b;	
+	int dg = pt2->c.g - pt1->c.g;	
+	int db = pt2->c.b - pt1->c.b;	
 	int da = pt2->c.a - pt1->c.a;
 
 	interpolation->x = x;
@@ -40,7 +40,7 @@ void RayX_Interpolation(RayX_Point *interpolation, RayX_Point const *pt1, RayX_P
 		interpolation->c.r = (dr * ( (x - pt1->x) - (y - pt1->y) )) / (dx - dy) + pt1->c.r;
 		interpolation->c.g = (dg * ( (x - pt1->x) - (y - pt1->y) )) / (dx - dy) + pt1->c.g;
 		interpolation->c.b = (db * ( (x - pt1->x) - (y - pt1->y) )) / (dx - dy) + pt1->c.a;
-		interpolation->c.a = (da * ( (x - pt1->x) - (y - pt1->y) )) / (dx + dy) - pt1->c.a;
+		interpolation->c.a = (da * ( (x - pt1->x) - (y - pt1->y) )) / (dx - dy) + pt1->c.a;
 	}
 
 	else

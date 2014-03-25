@@ -1,6 +1,7 @@
 #include "RayX_axe.h"
+#include "RayX_status.h"
 
-#define RAYX_AXE_GETNEXTPOINT(x, y, dx, dy, dz, a, b)	\
+#define RAYX_AXE_GETNEXTPOINT(x, y, dx, dy, a, b)			\
 															\
 						*e = *e - dy;						\
 						if (*e < 0)							\
@@ -11,36 +12,156 @@
 															\
 						*x = *x + b;						\
 
+#define RAYX_AXE_DRAWHVLINE(var)							\
+															\
+	if (pt2->var - pt1->var < 0)							\
+	{														\
+		RayX_Point const *tmp = pt1;								\
+		pt1 = pt2;											\
+		pt2 = tmp;											\
+	}														\
+															\
+	for (x = pt1->x, y = pt1->y; var <= pt2->var; var ++)	\
+	{														\
+		RayX_Interpolation(&point, pt1, pt2, x, y);			\
+		RayX_DrawPoint(renderer, &point);					\
+	}														\
 
-void RayX_RenderHorizontalLine(RayX_renderer *renderer, RayX_Point const *pt1, RayX_Point const *pt2)
+	static void RayX_DrawSpecificLine(RayX_Renderer *renderer, RayX_Point const *pt1, RayX_Point const *pt2, int dx, int dy, void (*RayX_GetNextPoint)(int*, int*, int, int, int*));
+	static void RayX_GetNextPointI(int *x, int *y, int dx, int dy, int *e);
+	static void RayX_GetNextPointII(int *x, int *y, int dx, int dy, int *e);
+	static void RayX_GetNextPointIII(int *x, int *y, int dx, int dy, int *e);
+	static void RayX_GetNextPointIV(int *x, int *y, int dx, int dy, int *e);
+	static void RayX_GetNextPointV(int *x, int *y, int dx, int dy, int *e);
+	static void RayX_GetNextPointVI(int *x, int *y, int dx, int dy, int *e);
+	static void RayX_GetNextPointVII(int *x, int *y, int dx, int dy, int *e);
+	static void RayX_GetNextPointVIII(int *x, int *y, int dx, int dy, int *e);
+	static int RayX_GetAxeFirstError(int dx, int dy);
+
+
+void RayX_DrawLine(RayX_Renderer *renderer, RayX_Point const *pt1, RayX_Point const *pt2)
 {
-	int dx, i;
-	RayX_Point point;
-	double iz;
+	int dx, dy;
 
 	assert(pt1);
 	assert(pt2);
 
 	dx = pt2->x - pt1->x;
+	dy = pt2->y - pt1->y;
 
-	if (dx < 0)
+	if (dx == 0)
 	{
-		RayX_Point *tmp = pt1;
-		pt1 = pt2;
-		pt2 = tmp;
-		dx *= -1
+		RayX_DrawVerticalLine(renderer, pt1, pt2);
 	}
 
-	point.y = pt1->y;
-	point.z = pt1->z;
-	iz = (pt1->z - pt2->z) / dx;
-	for (i = pt1->x, ; i <= pt2->x; i ++)
+	else if (dy == 0)
 	{
-		point.x = i;
-		point.z = 
-
-
+		RayX_DrawHorizontalLine(renderer, pt1, pt2);
 	}
+
+	else if (dy > 0)
+	{
+		if (dx > 0)
+		{
+			if (dx >= dy)
+			{
+				printf("a\n");
+				RayX_DrawSpecificLine(renderer, pt1, pt2, dx, dy, RayX_GetNextPointI);
+			}
+
+			else
+			{
+				printf("b\n");
+				RayX_DrawSpecificLine(renderer, pt1, pt2, dx, dy, RayX_GetNextPointII);
+			}
+		}
+
+		else
+		{
+			if (-dx <= dy)
+			{
+				printf("c\n");
+				RayX_DrawSpecificLine(renderer, pt1, pt2, dx, dy, RayX_GetNextPointIII);
+			}
+
+			else
+			{
+				printf("d\n");
+				RayX_DrawSpecificLine(renderer, pt1, pt2, dx, dy, RayX_GetNextPointIV);
+			}
+		}
+	}
+
+	else
+	{
+		if (dx < 0)
+		{
+			if (-dx >= -dy)
+			{
+				printf("e\n");
+				RayX_DrawSpecificLine(renderer, pt1, pt2, dx, dy, RayX_GetNextPointV);
+			}
+
+			else
+			{
+				printf("f\n");
+				RayX_DrawSpecificLine(renderer, pt1, pt2, dx, dy, RayX_GetNextPointVI);
+			}
+		}
+
+		else
+		{
+			if (dx <= -dy)
+			{
+				printf("g\n");
+				RayX_DrawSpecificLine(renderer, pt1, pt2, dx, dy, RayX_GetNextPointVII);
+			}
+
+			else
+			{
+				printf("h\n");
+				RayX_DrawSpecificLine(renderer, pt1, pt2, dx, dy, RayX_GetNextPointVIII);
+			}
+		}
+	}
+}
+
+void RayX_DrawHorizontalLine(RayX_Renderer *renderer, RayX_Point const *pt1, RayX_Point const *pt2)
+{
+	int x, y;
+	RayX_Point point;
+
+	assert(pt1);
+	assert(pt2);
+
+	RAYX_AXE_DRAWHVLINE(x);
+}
+
+
+void RayX_DrawVerticalLine(RayX_Renderer *renderer, RayX_Point const *pt1, RayX_Point const *pt2)
+{
+	int x, y;
+	RayX_Point point;
+
+	assert(pt1);
+	assert(pt2);
+
+	RAYX_AXE_DRAWHVLINE(y);
+}
+
+static void RayX_DrawSpecificLine(RayX_Renderer *renderer, RayX_Point const *pt1, RayX_Point const *pt2, int dx, int dy, void (*RayX_GetNextPoint)(int*, int*, int, int, int*))
+{
+	int x, y;
+	int e = RayX_GetAxeFirstError(dx, dy);
+	RayX_Point point;
+
+	for (x = pt1->x, y = pt1->y; x != pt2->x || y != pt2->y; RayX_GetNextPoint(&x, &y, dx, dy, &e))
+	{
+		RayX_Interpolation(&point, pt1, pt2, x, y);
+		RayX_DrawPoint(renderer, &point);
+	}
+
+	RayX_DrawPoint(renderer, pt2);
 }
 
 /* dx > 0, dy > 0, dx >= dy */
@@ -91,8 +212,7 @@ static void RayX_GetNextPointVIII(int *x, int *y, int dx, int dy, int *e)
 	RAYX_AXE_GETNEXTPOINT(x, y, dx, -dy, -1, 1)
 }
 
-/* Return the first error associated with the line */
-static int RayX_GetFirstAxeError(int dx, int dy)
+static int RayX_GetAxeFirstError(int dx, int dy)
 {	
 	if (dx < 0)
 	{
@@ -116,47 +236,3 @@ static int RayX_GetFirstAxeError(int dx, int dy)
 
 
 
-
-void RayX_Interpolation(RayX_Point *interpolation, RayX_Point const *pt1, RayX_Point const *pt2, int x, int y)
-{
-	int dx = pt2->x - pt1->x;
-	int dy = pt2->y - pt1->y;
-	double dz = pt2->z - pt1->z;
-	int dr = pt2->c.r - pt1->c.r;			
-	int db = pt2->c.g - pt1->c.g;	
-	int dg = pt2->c.b - pt1->c.b;	
-	int da = pt2->c.a - pt1->c.a;
-
-	interpolation->x = x;
-	interpolation->y = y;
-
-	if (dx != dy)
-	{
-		interpolation->z = (dz * ( (x - pt1->x) + (y - pt1->y) )) / (dx + dy) + pt1->z;
-		interpolation->c.r = (dr * ( (x - pt1->x) + (y - pt1->y) )) / (dx + dy) + pt1->c.r;
-		interpolation->c.g = (dg * ( (x - pt1->x) + (y - pt1->y) )) / (dx + dy) + pt1->c.g;
-		interpolation->c.b = (db * ( (x - pt1->x) + (y - pt1->y) )) / (dx + dy) + pt1->c.b;
-		interpolation->c.a = (da * ( (x - pt1->x) + (y - pt1->y) )) / (dx + dy) + pt1->c.a;
-	}
-
-	else
-	{
-		if (dx != 0)
-		{
-			interpolation->z = (dz * ( (x - pt1->x) - (y - pt1->y) )) / (dx - dy) + pt1->z;
-			interpolation->c.r = (dr * ( (x - pt1->x) - (y - pt1->y) )) / (dx - dy) + pt1->c.r;
-			interpolation->c.g = (dg * ( (x - pt1->x) - (y - pt1->y) )) / (dx - dy) + pt1->c.g;
-			interpolation->c.b = (db * ( (x - pt1->x) - (y - pt1->y) )) / (dx - dy) + pt1->c.a;
-			interpolation->c.a = (da * ( (x - pt1->x) - (y - pt1->y) )) / (dx + dy) - pt1->c.a;
-		}
-
-		else
-		{
-			interpolation->z = (pt1->z + pt2->z) / 2;
-			interpolation->c.r = (pt1->c.r + pt2->c.r) / 2;
-			interpolation->c.g = (pt1->c.g + pt2->c.g) / 2;
-			interpolation->c.b = (pt1->c.b + pt2->c.b) / 2;
-			interpolation->c.a = (pt1->c.a + pt2->c.a) / 2;
-		}
-	}
-}

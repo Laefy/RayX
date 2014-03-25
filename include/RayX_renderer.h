@@ -20,8 +20,11 @@ typedef struct _RayX_Renderer {
 	/** Free the renderer **/
 	void RayX_FreeRenderer(RayX_Renderer *renderer);
 
-	/** Render a point on the SDL_Renderer target **/
-	void RayX_RenderPoint(RayX_Renderer *renderer, RayX_Point const *point);
+	/** Draw a point on the SDL_Renderer target **/
+	void RayX_DrawPoint(RayX_Renderer *renderer, RayX_Point const *point);
+
+	/** Render **/
+	void RayX_Render(RayX_Renderer *renderer);
 
 	/** Return 1 if the renderer as been set in 3D **/
 	int RayX_Is3DModeSet(RayX_Renderer const *renderer);

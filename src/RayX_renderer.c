@@ -1,4 +1,5 @@
 #include "RayX_renderer.h"
+#include "RayX_status.h"
 
 	/** Creation of the zBuffer **/
 	static int RayX_CreateZbuffer(double ***zBuffer, int width, int height);
@@ -7,10 +8,10 @@
 	static void RayX_FreeZbuffer(double **zBuffer);
 
 	/** Reinitialization of the zBuffer **/
-	static void RayX_ClearZbuffer(double **zBuffer);
+	static void RayX_ClearZbuffer(double **zBuffer, int width, int height);
 
 	/** Render a 3D point **/
-	static void RayX_Render3DPoint(RayX_Renderer *renderer, RayX_Point const *point);
+	static void RayX_Draw3DPoint(RayX_Renderer *renderer, RayX_Point const *point);
 
 
 int RayX_Create2DRenderer(RayX_Renderer *renderer, SDL_Renderer *sdlRenderer, int width, int height)
@@ -53,18 +54,26 @@ void RayX_FreeRenderer(RayX_Renderer *renderer)
 	}
 }
 
-void RayX_RenderPoint(RayX_Renderer *renderer, RayX_Point const *point)
+void RayX_DrawPoint(RayX_Renderer *renderer, RayX_Point const *point)
 {
-	if (renderer->mode3D)
+	if (point->x >= 0 && point->x < renderer->width && point->y >= 0 && point->y < renderer->height)
 	{
-		RayX_Render3DPoint(renderer, point);
+		if (renderer->mode3D)
+		{
+			RayX_Draw3DPoint(renderer, point);
+		}
+		
+		else
+		{
+			SDL_SetRenderDrawColor(renderer->sdlRenderer, point->c.r, point->c.g, point->c.b, point->c.a);
+			SDL_RenderDrawPoint(renderer->sdlRenderer, point->x, point->y);
+		}
 	}
-	
-	else
-	{
-		SDL_SetRenderDrawColor(renderer->sdlRenderer, point->c.r, point->c.g, point->c.b, point->c.a);
-		SDL_RenderDrawPoint(renderer->sdlRenderer, point->x, point->y);
-	}
+}
+
+void RayX_Render(RayX_Renderer *renderer)
+{
+	SDL_RenderPresent(renderer->sdlRenderer);
 }
 
 int RayX_Is3DModeSet(RayX_Renderer const *renderer)
@@ -126,8 +135,9 @@ static void RayX_ClearZbuffer(double **zBuffer, int width, int height)
 	}
 }
 
-static void RayX_Render3DPoint(RayX_Renderer *renderer, RayX_Point const *point)
+static void RayX_Draw3DPoint(RayX_Renderer *renderer, RayX_Point const *point)
 {
+	int x = point->x, y = point->y;
 	double *bz = &renderer->zBuffer[y][x];
 
 	if (*bz != -1 && *bz < point->z)

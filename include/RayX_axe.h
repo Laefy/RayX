@@ -5,12 +5,12 @@
 	#include "RayX_renderer.h"
 
 	/** Render a line between two points **/
-	void RayX_RenderLine(RayX_renderer *renderer, RayX_Point const *pt1, RayX_Point const *pt2);
+	void RayX_DrawLine(RayX_Renderer *renderer, RayX_Point const *pt1, RayX_Point const *pt2);
 
 	/** Render a horizontal line **/
-	void RayX_RenderHorizontalLine(RayX_renderer *renderer, RayX_Point const *pt1, RayX_Point const *pt2);
+	void RayX_DrawHorizontalLine(RayX_Renderer *renderer, RayX_Point const *pt1, RayX_Point const *pt2);
 	
 	/** Render a vertical line **/
-	void RayX_RenderVerticalLine(RayX_renderer *renderer, RayX_Point const *pt1, RayX_Point const *pt2);	
+	void RayX_DrawVerticalLine(RayX_Renderer *renderer, RayX_Point const *pt1, RayX_Point const *pt2);	
 
 #endif
